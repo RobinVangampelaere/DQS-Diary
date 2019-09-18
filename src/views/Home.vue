@@ -1,8 +1,7 @@
 <template>
   <div class="home">
-    <Counter />
     <Login v-if="!this.$store.state.authStore.user" />
-    <Overview v-else />
+    <Counter />
   </div>
 </template>
 
@@ -20,3 +19,11 @@ export default {
   }
 };
 </script>
+
+<style lang="scss" scoped>
+.home {
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: center;
+}
+</style>

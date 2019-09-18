@@ -31,40 +31,42 @@ const router = new Router({
   routes
 });
 
-// router.beforeEach((to, from, next) => {
-//   const currentUser = firebase.auth().currentUser;
-//   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-//   const requiresAnonym = to.matched.some(record => record.meta.requiresAnonym);
+router.beforeEach((to, from, next) => {
+  const currentUser = firebase.auth().currentUser;
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
-//   if (requiresAuth && !currentUser) next('login');
-//   else if (requiresAnonym && currentUser) next('dashboard');
-//   else next();
-// });
+  if (requiresAuth && !currentUser) next('/');
+  else next();
+});
 
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
-    db.collection('users').doc(user.uid).get().then((docSnapshot) => {
-      store.commit("login", user.uid);
-      if (!docSnapshot.exists) {
-        db.collection('users').doc(user.uid).set({
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL,
-          uid: user.uid
-        })
+    db.collection('users').doc(user.uid).get().then((doc) => {
+      if (!doc.exists) {
+        addNewUser(user);
       }
+      store.commit("login", user.uid);
     }).then(() => {
-      new Vue({
-        router,
-        store,
-        render: h => h(App),
-      }).$mount('#app')
+      renderApp();
     })
   } else {
-    new Vue({
-      router,
-      store,
-      render: h => h(App),
-    }).$mount('#app')
+    renderApp();
   }
 });
+
+function addNewUser(user) {
+  db.collection('users').doc(user.uid).set({
+    displayName: user.displayName,
+    email: user.email,
+    photoURL: user.photoURL,
+    uid: user.uid
+  })
+}
+
+function renderApp() {
+  new Vue({
+    router,
+    store,
+    render: h => h(App),
+  }).$mount('#app')
+}
