@@ -41,6 +41,10 @@ router.beforeEach((to, from, next) => {
 
 firebase.auth().onAuthStateChanged(user => {
   if (user) {
+    //console.log(user);
+    // user.getIdToken().then(function (idToken) {
+    //   console.log(idToken);
+    // });
     db.collection('users').doc(user.uid).get().then((doc) => {
       if (!doc.exists) {
         addNewUser(user);

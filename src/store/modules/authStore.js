@@ -16,12 +16,11 @@ const mutations = {
     login(state, uid) {
         db.collection('users').doc(uid).get().then((doc) => {
             state.user = doc.data();
-            this.commit("setcurrentDayData", uid, { root: true });
+            this.commit("setSelectedDay", uid, { root: true });
         });
     },
     logout(state) {
         state.user = "";
-        this.commit("deletecurrentDayData", { root: true });
     }
 };
 

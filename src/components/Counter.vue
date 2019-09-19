@@ -27,11 +27,12 @@
             class="md-icon-button md-raised"
             v-on:click="toggle"
             v-for="(intake, intakeIndex) in food.intakes"
-            :disabled="intakeIndex > amountDisabled[category.id][food.id] || intakeIndex < amountDisabled[category.id][food.id]-1"
+            v-bind:class="{ 'md-accent': checkIfActive(food.id, intakeIndex) }"
             :key="intakeIndex"
             :categoryId="category.id"
             :foodId="food.id"
             :intake="intake"
+            :intakeIndex="intakeIndex"
           >{{intake}}</md-button>
         </span>
       </md-list-item>
@@ -40,33 +41,49 @@
 </template>
 
 <script>
+import firebase from "firebase/app";
+import "firebase/firebase-firestore";
 import db from "../firestore";
 
 export default {
   name: "counter",
   data: function() {
     return {
-      amountDisabled: this.$store.getters.getCategoryNames()
+      //amountDisabled: this.$store.getters.getCategoryNames()
     };
   },
   methods: {
+    checkIfActive(foodId, index) {
+      if (this.$store.state.dataStore.currentDayData[foodId]) {
+        if (this.$store.state.dataStore.currentDayData[foodId][index]) {
+          return true;
+        }
+      }
+      return false;
+    },
     toggle(e) {
-      if (isSelected()) {
-        toggleButton(this, false);
-        changeTotal(this, -parseInt(e.currentTarget.getAttribute("intake")));
-        //sendToFirebase();
-      } else {
-        toggleButton(this, true);
-        changeTotal(this, parseInt(e.currentTarget.getAttribute("intake")));
+      const fromActiveToNotActive = e.currentTarget.classList.contains(
+        "md-accent"
+      );
+      const categoryId = e.currentTarget.getAttribute("categoryId");
+      const foodId = e.currentTarget.getAttribute("foodId");
+      const intake = parseInt(e.currentTarget.getAttribute("intake"));
+      const intakeIndex = parseInt(e.currentTarget.getAttribute("intakeIndex"));
+
+      //toggleButton(this, isSelected);
+      sendToLocalData(this, foodId, intake, intakeIndex, fromActiveToNotActive);
+      if (this.$store.state.authStore.user) {
+        sendToFirebase(
+          this,
+          categoryId,
+          foodId,
+          intake,
+          intakeIndex,
+          !fromActiveToNotActive
+        );
       }
       e.currentTarget.classList.toggle("md-accent");
 
-      function isSelected() {
-        return e.currentTarget.classList.contains("md-accent");
-      }
-      function changeTotal(currentState, amount) {
-        currentState.$store.state.dataStore.currentDayTotal += amount;
-      }
       function toggleButton(currentState, operator) {
         if (operator) {
           currentState.amountDisabled[
@@ -78,13 +95,78 @@ export default {
           ][e.currentTarget.getAttribute("foodId")] -= 1;
         }
       }
+      function sendToLocalData(
+        state,
+        foodId,
+        intake,
+        intakeIndex,
+        fromActiveToNotActive
+      ) {
+        if (foodId in state.$store.state.dataStore.currentDayData) {
+          state.$store.state.dataStore.currentDayData[foodId][
+            intakeIndex
+          ] = !fromActiveToNotActive;
+        } else {
+          state.$store.state.dataStore.currentDayData[foodId] = {
+            [intakeIndex]: !fromActiveToNotActive
+          };
+        }
+        if (intake !== 0) {
+          state.$store.state.dataStore.currentDayTotal += fromActiveToNotActive
+            ? -intake
+            : intake;
+        }
+      }
+      function sendToFirebase(
+        state,
+        categoryId,
+        foodId,
+        intake,
+        intakeIndex,
+        fromActiveToNotActive
+      ) {
+        const foodRef = state.$store.state.dataStore.dayRef
+          .collection("categories")
+          .doc(categoryId)
+          .collection("foods")
+          .doc(foodId);
+
+        state.$store.state.dataStore.dayRef.get().then(doc => {
+          if (!doc.exists) {
+            state.$store.state.dataStore.dayRef.set({
+              score: 0
+            });
+          }
+
+          foodRef.get().then(doc => {
+            if (doc.exists && fromActiveToNotActive) {
+              foodRef.update({
+                [intakeIndex]: true
+              });
+            } else if (doc.exists && !fromActiveToNotActive) {
+              intakeIndex === 0
+                ? foodRef.delete()
+                : foodRef.update({
+                    [intakeIndex]: firebase.firestore.FieldValue.delete()
+                  });
+            } else {
+              foodRef.set({
+                [intakeIndex]: true
+              });
+            }
+            if (intake !== 0) {
+              state.$store.state.dataStore.dayRef.update({
+                score: firebase.firestore.FieldValue.increment(
+                  fromActiveToNotActive ? intake : -intake
+                )
+              });
+            }
+          });
+        });
+      }
     }
   }
 };
-
-function addPortion() {
-  // db.collection("users").doc(this.$store.state.dataStore.categories);
-}
 </script>
 
 <style lang="scss" scoped>

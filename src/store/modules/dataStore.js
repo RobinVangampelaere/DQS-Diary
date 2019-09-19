@@ -3,7 +3,7 @@ import moment from "moment";
 
 const state = {
     currentDate: "",
-    currentDayData: "",
+    currentDayData: {},
     currentDayTotal: 0,
     categories: [
         {
@@ -25,21 +25,22 @@ const state = {
                 { "intakes": [-1, -1, -2, -2, -2, -2], "name": "Refined grains", "order": 1, "id": "grains" },
                 { "intakes": [-2, -2, -2, -2, -2, -2], "name": "Sweets", "order": 2, "id": "sweets" }
             ]
-        }]
+        }],
+    dayRef: "",
 };
 
 const getters = {
-    getCategoryNames: state => getters => {
-        let categoryNameList = {};
-        state.categories.forEach((category) => {
-            let foodObject = {};
-            category.foods.forEach((food) => {
-                foodObject[food.id] = 0;
-            });
-            categoryNameList[category.id] = foodObject;
-        })
-        return categoryNameList;
-    }
+    // getCategoryNames: state => getters => {
+    //     let categoryNameList = {};
+    //     state.categories.forEach((category) => {
+    //         let foodObject = {};
+    //         category.foods.forEach((food) => {
+    //             foodObject[food.id] = 0;
+    //         });
+    //         categoryNameList[category.id] = foodObject;
+    //     })
+    //     return categoryNameList;
+    // }
 };
 
 const actions = {
@@ -47,16 +48,34 @@ const actions = {
 };
 
 const mutations = {
-    setcurrentDayData(state, uid, date = moment().startOf('day')) {
-        db.collection('users').doc(uid).collection('days').doc(date.format()).get().then((doc) => {
+    setSelectedDay(state, uid, date = moment()) {
+        state.currentDate = date;
+        state.dayRef = db
+            .collection("users")
+            .doc(uid)
+            .collection("days")
+            .doc(
+                state.currentDate
+                    .format("YYYYMMDD")
+                    .toString()
+            );
+
+
+        state.dayRef.get().then(doc => {
             if (doc.exists) {
-                state.currentDate = date;
-                state.currentDayData = doc.data();
+                state.currentDayTotal = doc.data().score;
             }
-        });
-    },
-    deletecurrentDayData() {
-        state.currentDayData = "";
+        })
+
+        db.collectionGroup('foods').get().then((foods) => {
+            if (foods.size > 0) {
+                let foodObject = {};
+                foods.forEach(food => {
+                    foodObject[food.id] = food.data();
+                });
+                state.currentDayData = foodObject;
+            }
+        })
     },
 };
 
