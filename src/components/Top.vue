@@ -11,12 +11,14 @@
           :src="this.$store.state.authStore.user.photoURL"
           alt="Avatar"
         />
+        <md-tooltip md-direction="bottom">Profile</md-tooltip>
       </md-avatar>
     </router-link>
     <md-avatar v-else>
       <img
         src="https://upload.wikimedia.org/wikipedia/commons/a/ad/Placeholder_no_text.svg"
         alt="Avatar"
+        style="background-color: white;"
       />
     </md-avatar>
   </div>

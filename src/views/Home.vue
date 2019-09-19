@@ -8,14 +8,12 @@
 <script>
 import Counter from "@/components/Counter.vue";
 import Login from "@/components/Login.vue";
-import Overview from "@/components/Overview.vue";
 
 export default {
   name: "home",
   components: {
     Counter,
-    Login,
-    Overview
+    Login
   }
 };
 </script>

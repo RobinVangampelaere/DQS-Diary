@@ -126,9 +126,7 @@ export default {
         fromActiveToNotActive
       ) {
         const foodRef = state.$store.state.dataStore.dayRef
-          .collection("categories")
-          .doc(categoryId)
-          .collection("foods")
+          .collection(`categories/${categoryId}/foods`)
           .doc(foodId);
 
         state.$store.state.dataStore.dayRef.get().then(doc => {

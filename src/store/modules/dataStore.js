@@ -51,9 +51,7 @@ const mutations = {
     setSelectedDay(state, uid, date = moment()) {
         state.currentDate = date;
         state.dayRef = db
-            .collection("users")
-            .doc(uid)
-            .collection("days")
+            .collection(`users/${uid}/days`)
             .doc(
                 state.currentDate
                     .format("YYYYMMDD")
@@ -77,6 +75,12 @@ const mutations = {
             }
         })
     },
+    cleanSelectedDate(state) {
+        state.currentDate = "";
+        state.currentDayData = {};
+        state.currentDayTotal = 0;
+        state.dayRef = "";
+    }
 };
 
 export default {

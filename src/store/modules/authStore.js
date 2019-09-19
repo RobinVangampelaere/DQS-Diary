@@ -21,6 +21,7 @@ const mutations = {
     },
     logout(state) {
         state.user = "";
+        this.commit("cleanSelectedDate", { root: true });
     }
 };
 
