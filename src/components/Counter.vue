@@ -1,9 +1,13 @@
 <template>
   <div id="counter" v-if="this.$store.state.dataStore.categories">
     <md-list>
-      <md-subheader
-        v-if="this.$store.state.dataStore.currentDate"
-      >{{ this.$store.state.dataStore.currentDate.format("dddd DD/MM/YYYY") }}</md-subheader>
+      <md-subheader v-if="this.$store.state.dataStore.currentDate">
+        <span class="button" v-on:click="changeDay(false)">&#8810;</span>
+        <span
+          style="width: 160px; text-align: center;"
+        >{{ this.$store.state.dataStore.currentDate.format("dddd DD/MM/YYYY") }}</span>
+        <span class="button" v-on:click="changeDay(true)">&#8811;</span>
+      </md-subheader>
       <md-subheader v-else>{{ moment().startOf('day').format("dddd DD/MM/YYYY") }}</md-subheader>
       <md-list-item>
         <p>OVERALL SCORE</p>
@@ -44,6 +48,7 @@
 import firebase from "firebase/app";
 import "firebase/firebase-firestore";
 import db from "../firestore";
+import moment from "moment";
 
 export default {
   name: "counter",
@@ -126,13 +131,14 @@ export default {
         fromActiveToNotActive
       ) {
         const foodRef = state.$store.state.dataStore.dayRef
-          .collection(`categories/${categoryId}/foods`)
+          .collection("foods")
           .doc(foodId);
 
         state.$store.state.dataStore.dayRef.get().then(doc => {
           if (!doc.exists) {
             state.$store.state.dataStore.dayRef.set({
-              score: 0
+              score: 0,
+              category: categoryId
             });
           }
 
@@ -142,11 +148,9 @@ export default {
                 [intakeIndex]: true
               });
             } else if (doc.exists && !fromActiveToNotActive) {
-              intakeIndex === 0
-                ? foodRef.delete()
-                : foodRef.update({
-                    [intakeIndex]: firebase.firestore.FieldValue.delete()
-                  });
+              foodRef.update({
+                [intakeIndex]: firebase.firestore.FieldValue.delete()
+              });
             } else {
               foodRef.set({
                 [intakeIndex]: true
@@ -160,6 +164,24 @@ export default {
               });
             }
           });
+        });
+      }
+    },
+    changeDay(addDay) {
+      if (addDay) {
+        if (
+          this.$store.state.dataStore.currentDate.format("YYYYMMDD") !==
+          moment().format("YYYYMMDD")
+        ) {
+          this.$store.commit("setSelectedDay", {
+            uid: this.$store.state.authStore.user.uid,
+            date: this.$store.state.dataStore.currentDate.add(1, "days")
+          });
+        }
+      } else {
+        this.$store.commit("setSelectedDay", {
+          uid: this.$store.state.authStore.user.uid,
+          date: this.$store.state.dataStore.currentDate.add(-1, "days")
         });
       }
     }
@@ -179,6 +201,19 @@ export default {
     min-width: 480px;
     border: 1px solid rgba(#000, 0.12);
     margin-bottom: 10px;
+
+    .md-subheader {
+      align-self: center;
+
+      > span {
+        margin: 0 5px;
+
+        &.button {
+          cursor: pointer;
+          user-select: none;
+        }
+      }
+    }
 
     .md-accent {
       color: #fff;

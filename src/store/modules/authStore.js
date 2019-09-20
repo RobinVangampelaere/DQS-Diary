@@ -1,4 +1,5 @@
 import db from "../../firestore";
+import moment from "moment";
 
 const state = {
     user: ""
@@ -16,7 +17,7 @@ const mutations = {
     login(state, uid) {
         db.collection('users').doc(uid).get().then((doc) => {
             state.user = doc.data();
-            this.commit("setSelectedDay", uid, { root: true });
+            this.commit("setSelectedDay", { uid: uid, date: moment() }, { root: true });
         });
     },
     logout(state) {

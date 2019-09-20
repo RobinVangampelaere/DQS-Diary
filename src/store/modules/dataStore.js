@@ -1,4 +1,5 @@
 import db from "../../firestore";
+import Vue from 'vue'
 import moment from "moment";
 
 const state = {
@@ -48,10 +49,10 @@ const actions = {
 };
 
 const mutations = {
-    setSelectedDay(state, uid, date = moment()) {
-        state.currentDate = date;
+    setSelectedDay(state, data) {
+        state.currentDate = data.date;
         state.dayRef = db
-            .collection(`users/${uid}/days`)
+            .collection(`users/${data.uid}/days`)
             .doc(
                 state.currentDate
                     .format("YYYYMMDD")
@@ -62,16 +63,20 @@ const mutations = {
         state.dayRef.get().then(doc => {
             if (doc.exists) {
                 state.currentDayTotal = doc.data().score;
-            }
-        })
-
-        db.collectionGroup('foods').get().then((foods) => {
-            if (foods.size > 0) {
-                let foodObject = {};
-                foods.forEach(food => {
-                    foodObject[food.id] = food.data();
-                });
-                state.currentDayData = foodObject;
+                state.dayRef.collection('foods').get().then((foods) => {
+                    if (foods.size > 0) {
+                        let foodObject = {};
+                        foods.forEach(food => {
+                            foodObject[food.id] = food.data();
+                        });
+                        state.currentDayData = foodObject;
+                    } else {
+                        state.currentDayData = {};
+                    }
+                })
+            } else {
+                state.currentDayTotal = 0;
+                state.currentDayData = {};
             }
         })
     },
