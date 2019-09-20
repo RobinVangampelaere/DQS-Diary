@@ -1,11 +1,16 @@
-import db from "../../firestore";
+import firebase from 'firebase/app'
+import 'firebase/firebase-firestore'
 import Vue from 'vue'
-import moment from "moment";
+import db from "../../firestore";
+import Moment from "moment";
+import { extendMoment } from 'moment-range';
+const moment = extendMoment(Moment);
 
 const state = {
     currentDate: "",
     currentDayData: {},
     currentDayTotal: 0,
+    currentWeekTotal: [0, 0, 0, 0, 0, 0, 0],
     categories: [
         {
             "name": "High Quality Foods",
@@ -80,11 +85,25 @@ const mutations = {
             }
         })
     },
+    setLastWeek(state, data) {
+        const dates = moment.range(moment().add(-6, "days"), moment());
+        let array = [];
+        for (let day of dates.by('day')) {
+            array.push(day.format('YYYYMMDD'));
+            db.collection(`users/${data.uid}/days`).doc(day.format('YYYYMMDD')).onSnapshot(doc => {
+                if (doc.exists) {
+                    state.currentWeekTotal.splice(array.indexOf(day.format('YYYYMMDD')), 1, doc.data().score);
+                }
+            });
+        }
+    },
+
     cleanSelectedDate(state) {
         state.currentDate = "";
         state.currentDayData = {};
         state.currentDayTotal = 0;
         state.dayRef = "";
+        state.currentWeekTotal = [0, 0, 0, 0, 0, 0, 0]
     }
 };
 

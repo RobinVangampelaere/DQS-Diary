@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 import Router from 'vue-router'
+import Trend from 'vuetrend'
 import firebase from 'firebase/app'
 import 'firebase/firebase-firestore'
 import 'firebase/firebase-auth'
@@ -20,7 +21,7 @@ import 'vue-material/dist/theme/default.css'
 
 Vue.use(VueMaterial)
 //-----------------
-
+Vue.use(Trend)
 Vue.use(Router);
 Vue.use(firestorePlugin)
 Vue.config.productionTip = false

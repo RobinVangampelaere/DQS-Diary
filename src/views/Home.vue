@@ -1,6 +1,7 @@
 <template>
   <div class="home">
-    <Login v-if="!this.$store.state.authStore.user" />
+    <Trend v-if="this.$store.state.authStore.user" />
+    <Login v-else />
     <Counter />
   </div>
 </template>
@@ -8,12 +9,14 @@
 <script>
 import Counter from "@/components/Counter.vue";
 import Login from "@/components/Login.vue";
+import Trend from "@/components/Trend.vue";
 
 export default {
   name: "home",
   components: {
     Counter,
-    Login
+    Login,
+    Trend
   }
 };
 </script>

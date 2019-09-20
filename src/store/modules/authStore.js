@@ -18,6 +18,7 @@ const mutations = {
         db.collection('users').doc(uid).get().then((doc) => {
             state.user = doc.data();
             this.commit("setSelectedDay", { uid: uid, date: moment() }, { root: true });
+            this.commit("setLastWeek", { uid: uid }, { root: true });
         });
     },
     logout(state) {
