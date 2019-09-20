@@ -2,7 +2,11 @@
 
 # DQS Diary
 
-Here comes text
+DQS Diary is a small app I wrote to fresh up my Vue and Firebase skills. The app lets you log in with Google authentication and records your daily diet quality. DQS Diary also contains an overview of the last 7 days. Everything is dynamic and is updated realtime from a Firestore instance.
+
+![Image of home](./src/assets/home.jpg)
+
+![Image of profile](./src/assets/profile.jpg)
 
 ---
 
